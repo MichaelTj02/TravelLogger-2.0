@@ -1,4 +1,4 @@
-package com.example.iat359_final_project
+package com.example.iat359_final_project.feature.logs
 
 import android.view.LayoutInflater
 import android.view.View
@@ -7,6 +7,9 @@ import android.widget.Button
 import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
+import com.example.iat359_final_project.R
+import com.example.iat359_final_project.data.local.Database
+import com.example.iat359_final_project.domain.model.LogEntry
 
 class CustomAdapter(
     val list: MutableList<LogEntry>,

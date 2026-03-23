@@ -1,9 +1,11 @@
-package com.example.iat359_final_project
+package com.example.iat359_final_project.data.local
 
 import android.content.ContentValues
 import android.content.Context
 import android.database.Cursor
 import android.database.sqlite.SQLiteDatabase
+import com.example.iat359_final_project.core.constants.Constants
+import com.example.iat359_final_project.domain.model.LogEntry
 
 class Database(context: Context) {
     private var db: SQLiteDatabase? = null

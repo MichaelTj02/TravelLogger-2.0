@@ -1,4 +1,4 @@
-package com.example.iat359_final_project
+package com.example.iat359_final_project.domain.model
 
 data class LogEntry(
     val sessionTitle: String,

@@ -1,4 +1,4 @@
-package com.example.iat359_final_project
+package com.example.iat359_final_project.feature.home
 
 import android.Manifest
 import android.content.Intent
@@ -19,6 +19,11 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
+import com.example.iat359_final_project.R
+import com.example.iat359_final_project.data.local.Database
+import com.example.iat359_final_project.feature.logs.ViewLogsActivity
+import com.example.iat359_final_project.feature.tracking.MapsActivity
+import com.example.iat359_final_project.feature.tracking.StepCounterActivity
 import com.google.android.gms.location.LocationServices
 import java.io.IOException
 import java.util.Locale

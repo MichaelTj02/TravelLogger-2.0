@@ -1,4 +1,4 @@
-package com.example.iat359_final_project
+package com.example.iat359_final_project.core.constants
 
 object Constants {
     const val DATABASE_NAME = "travel_logs.db"

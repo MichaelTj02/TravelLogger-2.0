@@ -1,4 +1,4 @@
-package com.example.iat359_final_project
+package com.example.iat359_final_project.feature.tracking
 
 import android.Manifest
 import android.content.Intent
@@ -18,6 +18,9 @@ import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import com.example.iat359_final_project.R
+import com.example.iat359_final_project.data.local.Database
+import com.example.iat359_final_project.feature.home.MainActivity
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationCallback
 import com.google.android.gms.location.LocationRequest
@@ -155,7 +158,6 @@ class StepCounterActivity : AppCompatActivity(), SensorEventListener, OnMapReady
                     val city = getCityFromLocation(location.latitude, location.longitude)
                     val sessionTitle = sessionTitleEditText.text.toString()
 
-                    // Keep insert order aligned with Database.insertData(location, steps, sessionTitle).
                     db.insertData(city, totalFinishSessionSteps.toString(), sessionTitle)
 
                     stepCounterTextView.text = "Session finished. Steps: $totalFinishSessionSteps"

@@ -1,10 +1,11 @@
-package com.example.iat359_final_project
+package com.example.iat359_final_project.data.local
 
 import android.content.Context
 import android.database.SQLException
 import android.database.sqlite.SQLiteDatabase
 import android.database.sqlite.SQLiteOpenHelper
 import android.widget.Toast
+import com.example.iat359_final_project.core.constants.Constants
 
 class DatabaseHelper(private val context: Context) : SQLiteOpenHelper(
     context,

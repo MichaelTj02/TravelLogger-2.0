@@ -1,4 +1,4 @@
-package com.example.iat359_final_project
+package com.example.iat359_final_project.feature.tracking
 
 import android.app.Service
 import android.content.Intent

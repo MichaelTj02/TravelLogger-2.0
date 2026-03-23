@@ -29,18 +29,18 @@
         android:theme="@style/Theme.IAT359_Final_Project"
         tools:targetApi="31">
         <activity
-            android:name=".LoginActivity"
+            android:name=".feature.auth.LoginActivity"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name=".SignupActivity"/>
-        <activity android:name=".MainActivity"/>
-        <activity android:name=".ViewLogsActivity"/>
-        <activity android:name=".MapsActivity"/>
-        <activity android:name=".StepCounterActivity"/>
+        <activity android:name=".feature.auth.SignupActivity"/>
+        <activity android:name=".feature.home.MainActivity"/>
+        <activity android:name=".feature.logs.ViewLogsActivity"/>
+        <activity android:name=".feature.tracking.MapsActivity"/>
+        <activity android:name=".feature.tracking.StepCounterActivity"/>
         <uses-library android:name="org.apache.http.legacy" android:required="false" />
         <meta-data
             android:name="com.google.android.geo.API_KEY"

@@ -1,4 +1,4 @@
-package com.example.iat359_final_project
+package com.example.iat359_final_project.feature.logs
 
 import android.app.Activity
 import android.os.Bundle
@@ -7,6 +7,11 @@ import android.widget.EditText
 import android.widget.Toast
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.example.iat359_final_project.R
+import com.example.iat359_final_project.core.constants.Constants
+import com.example.iat359_final_project.data.local.Database
+import com.example.iat359_final_project.data.local.DatabaseHelper
+import com.example.iat359_final_project.domain.model.LogEntry
 
 class ViewLogsActivity : Activity() {
     private lateinit var myRecycler: RecyclerView

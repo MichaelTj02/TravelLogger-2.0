@@ -1,4 +1,4 @@
-package com.example.iat359_final_project
+package com.example.iat359_final_project.feature.auth
 
 import android.Manifest
 import android.content.Context
@@ -13,6 +13,8 @@ import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import com.example.iat359_final_project.R
+import com.example.iat359_final_project.feature.home.MainActivity
 
 class LoginActivity : AppCompatActivity() {
     private lateinit var usernameEditText: EditText

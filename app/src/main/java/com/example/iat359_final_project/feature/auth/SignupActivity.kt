@@ -1,4 +1,4 @@
-package com.example.iat359_final_project
+package com.example.iat359_final_project.feature.auth
 
 import android.content.Context
 import android.content.Intent
@@ -8,6 +8,7 @@ import android.widget.Button
 import android.widget.EditText
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
+import com.example.iat359_final_project.R
 
 class SignupActivity : AppCompatActivity() {
     private lateinit var usernameEditText: EditText
