@@ -2,6 +2,7 @@ import java.util.Properties
 
 plugins {
     id("com.android.application")
+    id("org.jetbrains.kotlin.android")
     id("com.google.android.libraries.mapsplatform.secrets-gradle-plugin") version "2.0.1"
 
 }
@@ -32,6 +33,9 @@ android {
         sourceCompatibility = JavaVersion.VERSION_1_8
         targetCompatibility = JavaVersion.VERSION_1_8
     }
+    kotlinOptions {
+        jvmTarget = "1.8"
+    }
     buildToolsVersion = "33.0.1"
 }
 
@@ -46,6 +50,7 @@ secrets {
 
 dependencies {
 
+    implementation("androidx.core:core-ktx:1.12.0")
     implementation("androidx.appcompat:appcompat:1.6.1")
     implementation("com.google.android.gms:play-services-maps:18.2.0")
     implementation("com.google.android.material:material:1.10.0")
