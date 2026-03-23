@@ -19,14 +19,21 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import com.example.iat359_final_project.R
-import com.example.iat359_final_project.data.local.Database
+import com.example.iat359_final_project.feature.home.presentation.HomeNavigation
+import com.example.iat359_final_project.feature.home.presentation.HomeUiEvent
+import com.example.iat359_final_project.feature.home.presentation.HomeUiState
+import com.example.iat359_final_project.feature.home.presentation.HomeViewModel
 import com.example.iat359_final_project.feature.logs.ViewLogsActivity
 import com.example.iat359_final_project.feature.tracking.MapsActivity
 import com.example.iat359_final_project.feature.tracking.StepCounterActivity
 import com.google.android.gms.location.LocationServices
+import kotlinx.coroutines.launch
 import java.io.IOException
-import java.util.Locale
 
 class MainActivity : AppCompatActivity(), SensorEventListener {
     private lateinit var sensorManager: SensorManager
@@ -40,18 +47,18 @@ class MainActivity : AppCompatActivity(), SensorEventListener {
     private var totalSteps = 0
     private var finalTotalSteps = 0
     private var stepOffset = 0
-    private lateinit var db: Database
+    private lateinit var homeViewModel: HomeViewModel
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
+        homeViewModel = ViewModelProvider(this)[HomeViewModel::class.java]
+
         val btnCheckLogs: ImageButton = findViewById(R.id.btnCheckLogs)
         val btnViewMap: ImageButton = findViewById(R.id.btnViewMap)
         val btnStartSession: ImageButton = findViewById(R.id.btnStartSession)
         val btnLocInfo: ImageButton = findViewById(R.id.btnViewInformation)
-
-        db = Database(this)
 
         sensorManager = getSystemService(SENSOR_SERVICE) as SensorManager
         stepCounter = sensorManager.getDefaultSensor(Sensor.TYPE_STEP_COUNTER)
@@ -125,7 +132,7 @@ class MainActivity : AppCompatActivity(), SensorEventListener {
             override fun onResults(results: Bundle?) {
                 val matches = results?.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION)
                 if (!matches.isNullOrEmpty()) {
-                    processVoiceCommand(matches[0])
+                    homeViewModel.onEvent(HomeUiEvent.VoiceCommand(matches[0]))
                 }
             }
 
@@ -136,7 +143,42 @@ class MainActivity : AppCompatActivity(), SensorEventListener {
             }
         })
 
+        observeHomeUi()
         startVoiceRecognition()
+    }
+
+    private fun observeHomeUi() {
+        lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
+                homeViewModel.uiState.collect(::renderHomeState)
+            }
+        }
+    }
+
+    private fun renderHomeState(state: HomeUiState) {
+        state.toastMessage?.let {
+            Toast.makeText(this, it, Toast.LENGTH_SHORT).show()
+            homeViewModel.onEvent(HomeUiEvent.ConsumeToast)
+        }
+        when (state.navigation) {
+            HomeNavigation.OpenLogs -> {
+                startActivity(Intent(this, ViewLogsActivity::class.java))
+                homeViewModel.onEvent(HomeUiEvent.ConsumeNavigation)
+            }
+            HomeNavigation.OpenMap -> {
+                startActivity(Intent(this, MapsActivity::class.java))
+                homeViewModel.onEvent(HomeUiEvent.ConsumeNavigation)
+            }
+            HomeNavigation.OpenTracking -> {
+                startActivity(Intent(this, StepCounterActivity::class.java))
+                homeViewModel.onEvent(HomeUiEvent.ConsumeNavigation)
+            }
+            HomeNavigation.OpenWeatherSearch -> {
+                performWebSearch()
+                homeViewModel.onEvent(HomeUiEvent.ConsumeNavigation)
+            }
+            HomeNavigation.None -> Unit
+        }
     }
 
     override fun onSensorChanged(event: SensorEvent) {
@@ -234,27 +276,6 @@ class MainActivity : AppCompatActivity(), SensorEventListener {
             putExtra(RecognizerIntent.EXTRA_PROMPT, "Speak something")
         }
         speechRecognizer.startListening(intent)
-    }
-
-    private fun processVoiceCommand(spokenText: String) {
-        val command = spokenText.lowercase(Locale.getDefault())
-        when {
-            command.contains("check logs") -> {
-                startActivity(Intent(this@MainActivity, ViewLogsActivity::class.java))
-            }
-            command.contains("view map") -> {
-                startActivity(Intent(this@MainActivity, MapsActivity::class.java))
-            }
-            command.contains("start session") -> {
-                startActivity(Intent(this@MainActivity, StepCounterActivity::class.java))
-            }
-            command.contains("view information") -> {
-                performWebSearch()
-            }
-            else -> {
-                Toast.makeText(this, "Command not recognized", Toast.LENGTH_SHORT).show()
-            }
-        }
     }
 
     companion object {

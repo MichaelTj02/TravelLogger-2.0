@@ -18,9 +18,19 @@ import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import com.example.iat359_final_project.R
 import com.example.iat359_final_project.data.local.Database
 import com.example.iat359_final_project.feature.home.MainActivity
+import com.example.iat359_final_project.feature.tracking.data.SessionRepositoryImpl
+import com.example.iat359_final_project.feature.tracking.presentation.SessionUiEvent
+import com.example.iat359_final_project.feature.tracking.presentation.SessionUiState
+import com.example.iat359_final_project.feature.tracking.presentation.SessionViewModel
+import com.example.iat359_final_project.feature.tracking.presentation.SessionViewModelFactory
+import kotlinx.coroutines.launch
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationCallback
 import com.google.android.gms.location.LocationRequest
@@ -47,7 +57,7 @@ class StepCounterActivity : AppCompatActivity(), SensorEventListener, OnMapReady
     private var totalSteps = 0
     private var stepOffset = 0
     private lateinit var sessionTitleEditText: EditText
-    private lateinit var db: Database
+    private lateinit var sessionViewModel: SessionViewModel
     private var currentPolyline: Polyline? = null
     private val pathCoordinates = arrayListOf<LatLng>()
     private lateinit var fusedLocationClient: FusedLocationProviderClient
@@ -64,7 +74,12 @@ class StepCounterActivity : AppCompatActivity(), SensorEventListener, OnMapReady
         stepCounter = sensorManager.getDefaultSensor(Sensor.TYPE_STEP_COUNTER)
         stepCounterTextView = findViewById(R.id.stepCounterText)
 
-        db = Database(this)
+        val sessionRepository = SessionRepositoryImpl(Database(this))
+        sessionViewModel = ViewModelProvider(
+            this,
+            SessionViewModelFactory(sessionRepository)
+        )[SessionViewModel::class.java]
+
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(this)
 
         mapView = findViewById(R.id.mapView)
@@ -102,6 +117,37 @@ class StepCounterActivity : AppCompatActivity(), SensorEventListener, OnMapReady
                 MY_PERMISSIONS_REQUEST_ACTIVITY_RECOGNITION
             )
         }
+
+        observeSessionUi()
+    }
+
+    private fun observeSessionUi() {
+        lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
+                sessionViewModel.uiState.collect(::renderSessionState)
+            }
+        }
+    }
+
+    private fun renderSessionState(state: SessionUiState) {
+        if (!state.saveJustFinished) return
+
+        val totalFinishSessionSteps = state.finishedStepCount
+        stepCounterTextView.text = "Session finished. Steps: $totalFinishSessionSteps"
+        stepListener?.let { sensorManager.unregisterListener(it) }
+
+        val currentMap = map
+        if (pathCoordinates.isNotEmpty() && currentMap != null) {
+            currentMap.addPolyline(
+                PolylineOptions()
+                    .addAll(pathCoordinates)
+                    .width(12f)
+                    .color(Color.BLUE)
+                    .geodesic(true)
+            )
+        }
+        resetSteps()
+        sessionViewModel.onEvent(SessionUiEvent.ConsumeSaveUi)
     }
 
     override fun onResume() {
@@ -158,22 +204,13 @@ class StepCounterActivity : AppCompatActivity(), SensorEventListener, OnMapReady
                     val city = getCityFromLocation(location.latitude, location.longitude)
                     val sessionTitle = sessionTitleEditText.text.toString()
 
-                    db.insertData(city, totalFinishSessionSteps.toString(), sessionTitle)
-
-                    stepCounterTextView.text = "Session finished. Steps: $totalFinishSessionSteps"
-                    stepListener?.let { sensorManager.unregisterListener(it) }
-
-                    val currentMap = map
-                    if (pathCoordinates.isNotEmpty() && currentMap != null) {
-                        currentMap.addPolyline(
-                            PolylineOptions()
-                                .addAll(pathCoordinates)
-                                .width(12f)
-                                .color(Color.BLUE)
-                                .geodesic(true)
+                    sessionViewModel.onEvent(
+                        SessionUiEvent.SaveSession(
+                            location = city,
+                            steps = totalFinishSessionSteps.toString(),
+                            sessionTitle = sessionTitle
                         )
-                    }
-                    resetSteps()
+                    )
                 }
             }
         } else {
