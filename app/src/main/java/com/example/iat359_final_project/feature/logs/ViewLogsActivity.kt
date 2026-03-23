@@ -1,24 +1,31 @@
 package com.example.iat359_final_project.feature.logs
 
-import android.app.Activity
 import android.os.Bundle
 import android.widget.Button
 import android.widget.EditText
 import android.widget.Toast
+import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.iat359_final_project.R
-import com.example.iat359_final_project.core.constants.Constants
 import com.example.iat359_final_project.data.local.Database
-import com.example.iat359_final_project.data.local.DatabaseHelper
 import com.example.iat359_final_project.domain.model.LogEntry
+import com.example.iat359_final_project.feature.logs.data.LogsRepositoryImpl
+import com.example.iat359_final_project.feature.logs.presentation.LogsUiEvent
+import com.example.iat359_final_project.feature.logs.presentation.LogsUiState
+import com.example.iat359_final_project.feature.logs.presentation.LogsViewModel
+import com.example.iat359_final_project.feature.logs.presentation.LogsViewModelFactory
+import kotlinx.coroutines.launch
 
-class ViewLogsActivity : Activity() {
+class ViewLogsActivity : AppCompatActivity() {
     private lateinit var myRecycler: RecyclerView
-    private lateinit var db: Database
     private lateinit var customAdapter: CustomAdapter
-    private lateinit var helper: DatabaseHelper
     private lateinit var layoutManager: LinearLayoutManager
+    private lateinit var viewModel: LogsViewModel
 
     private lateinit var searchEditText: EditText
     private lateinit var searchButton: Button
@@ -27,47 +34,27 @@ class ViewLogsActivity : Activity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_view_logs)
 
+        val repository = LogsRepositoryImpl(Database(this))
+        viewModel = ViewModelProvider(
+            this,
+            LogsViewModelFactory(repository)
+        )[LogsViewModel::class.java]
+
         myRecycler = findViewById(R.id.recyclerViewLogs)
-        db = Database(this)
-        helper = DatabaseHelper(this)
+        customAdapter = CustomAdapter(mutableListOf())
 
         val btnDeleteAll: Button = findViewById(R.id.btnDeleteAll)
         btnDeleteAll.setOnClickListener {
-            deleteAllLogs()
-            customAdapter.notifyDataSetChanged()
+            viewModel.onEvent(LogsUiEvent.DeleteAllLogs)
         }
-
-        val cursor = db.getData()
-        val index1 = cursor.getColumnIndex(Constants.SESSION_TITLE)
-        val index2 = cursor.getColumnIndex(Constants.LOCATION)
-        val index3 = cursor.getColumnIndex(Constants.STEPS_AMOUNT)
-
-        val list = ArrayList<LogEntry>()
-        cursor.moveToFirst()
-        while (!cursor.isAfterLast) {
-            val logTitle = cursor.getString(index1)
-            val logLocation = cursor.getString(index2)
-            val logSteps = cursor.getString(index3)
-            list.add(
-                LogEntry(
-                    sessionTitle = logTitle,
-                    location = logLocation,
-                    steps = logSteps
-                )
-            )
-            cursor.moveToNext()
-        }
-        cursor.close()
-
-        customAdapter = CustomAdapter(list, db)
 
         myRecycler.adapter = customAdapter
         layoutManager = LinearLayoutManager(this)
         myRecycler.layoutManager = layoutManager
 
         customAdapter.setOnItemClickListener(object : CustomAdapter.OnItemClickListener {
-            override fun onDeleteItemClick(position: Int) {
-                customAdapter.deleteItem(position)
+            override fun onDeleteItemClick(item: LogEntry) {
+                viewModel.onEvent(LogsUiEvent.DeleteLog(item.sessionTitle))
             }
         })
 
@@ -75,24 +62,26 @@ class ViewLogsActivity : Activity() {
         searchButton = findViewById(R.id.searchButton)
         searchButton.setOnClickListener {
             val locationQuery = searchEditText.text.toString()
-            val filteredList = db.queryLogs(locationQuery)
-            updateRecyclerView(filteredList)
+            viewModel.onEvent(LogsUiEvent.SearchLogs(locationQuery))
+        }
+
+        observeUiState()
+        viewModel.onEvent(LogsUiEvent.LoadLogs)
+    }
+
+    private fun observeUiState() {
+        lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
+                viewModel.uiState.collect(::renderState)
+            }
         }
     }
 
-    private fun deleteAllLogs() {
-        db.deleteAllRecords()
-        customAdapter.updateDataSet(arrayListOf())
-        customAdapter.notifyDataSetChanged()
-        Toast.makeText(this, "All logs deleted", Toast.LENGTH_SHORT).show()
-    }
-
-    private fun updateRecyclerView(newList: List<LogEntry>) {
-        if (newList.isEmpty()) {
-            Toast.makeText(this, "No logs found for this location", Toast.LENGTH_SHORT).show()
-        } else {
-            customAdapter.updateDataSet(newList)
-            customAdapter.notifyDataSetChanged()
+    private fun renderState(state: LogsUiState) {
+        customAdapter.updateDataSet(state.logs)
+        state.message?.let {
+            Toast.makeText(this, it, Toast.LENGTH_SHORT).show()
+            viewModel.onEvent(LogsUiEvent.ConsumeMessage)
         }
     }
 }
