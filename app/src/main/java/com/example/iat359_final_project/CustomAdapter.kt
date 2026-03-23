@@ -9,7 +9,7 @@ import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 
 class CustomAdapter(
-    val list: ArrayList<String>,
+    val list: MutableList<LogEntry>,
     private val db: Database
 ) : RecyclerView.Adapter<CustomAdapter.MyViewHolder>() {
 
@@ -22,10 +22,10 @@ class CustomAdapter(
     }
 
     override fun onBindViewHolder(holder: MyViewHolder, position: Int) {
-        val results = list[position].split(",")
-        holder.sessionTitle.text = results[1]
-        holder.locationTextView.text = results[2]
-        holder.stepsTextView.text = results[0]
+        val item = list[position]
+        holder.sessionTitle.text = item.sessionTitle
+        holder.locationTextView.text = item.location
+        holder.stepsTextView.text = item.steps
     }
 
     override fun getItemCount(): Int = list.size
@@ -57,14 +57,12 @@ class CustomAdapter(
 
     fun deleteItem(position: Int) {
         val item = list[position]
-        val results = item.split(",")
-        val location = results[0]
         list.removeAt(position)
         notifyItemRemoved(position)
-        db.deleteData(location)
+        db.deleteData(item.sessionTitle)
     }
 
-    fun updateDataSet(newList: ArrayList<String>) {
+    fun updateDataSet(newList: List<LogEntry>) {
         list.clear()
         list.addAll(newList)
         notifyDataSetChanged()

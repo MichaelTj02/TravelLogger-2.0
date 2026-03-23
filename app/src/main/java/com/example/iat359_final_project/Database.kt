@@ -30,7 +30,7 @@ class Database(context: Context) {
         return writableDb.query(Constants.TABLE_NAME, columns, null, null, null, null, null)
     }
 
-    fun queryLogs(location: String?): ArrayList<String> {
+    fun queryLogs(location: String?): ArrayList<LogEntry> {
         val readableDb = helper.readableDatabase
         val columns = arrayOf(Constants.SESSION_TITLE, Constants.STEPS_AMOUNT, Constants.LOCATION)
         val selection = "${Constants.LOCATION} LIKE ?"
@@ -46,7 +46,7 @@ class Database(context: Context) {
             null
         )
 
-        val resultList = ArrayList<String>()
+        val resultList = ArrayList<LogEntry>()
         cursor.use {
             if (it.moveToFirst()) {
                 val titleIndex = it.getColumnIndex(Constants.SESSION_TITLE)
@@ -57,7 +57,13 @@ class Database(context: Context) {
                     val sessionTitle = it.getString(titleIndex)
                     val logLocation = it.getString(locationIndex)
                     val stepsAmount = it.getString(stepsIndex)
-                    resultList.add("$sessionTitle,$logLocation,$stepsAmount")
+                    resultList.add(
+                        LogEntry(
+                            sessionTitle = sessionTitle,
+                            location = logLocation,
+                            steps = stepsAmount
+                        )
+                    )
                 } while (it.moveToNext())
             }
         }

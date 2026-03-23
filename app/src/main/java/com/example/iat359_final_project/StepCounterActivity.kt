@@ -12,7 +12,6 @@ import android.location.Address
 import android.location.Geocoder
 import android.os.Bundle
 import android.util.Log
-import android.view.View
 import android.widget.Button
 import android.widget.EditText
 import android.widget.TextView
@@ -39,13 +38,10 @@ class StepCounterActivity : AppCompatActivity(), SensorEventListener, OnMapReady
     private var stepCounter: Sensor? = null
     private lateinit var mapView: MapView
     private var map: GoogleMap? = null
-    private var accelerometer: Sensor? = null
-    private var gyroscope: Sensor? = null
     private var stepListener: SensorEventListener? = null
     private lateinit var stepCounterTextView: TextView
     private var isCounterStarted = false
     private var totalSteps = 0
-    private var finalTotalSteps = 0
     private var stepOffset = 0
     private lateinit var sessionTitleEditText: EditText
     private lateinit var db: Database
@@ -135,7 +131,6 @@ class StepCounterActivity : AppCompatActivity(), SensorEventListener, OnMapReady
                 stepOffset = event.values[0].toInt()
             }
             val currentSteps = event.values[0].toInt() - stepOffset
-            finalTotalSteps = currentSteps
             stepCounterTextView.text = "Steps: $currentSteps"
         }
     }
@@ -190,7 +185,6 @@ class StepCounterActivity : AppCompatActivity(), SensorEventListener, OnMapReady
 
     private fun resetSteps() {
         totalSteps = 0
-        finalTotalSteps = 0
     }
 
     override fun onMapReady(googleMap: GoogleMap) {

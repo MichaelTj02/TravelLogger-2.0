@@ -37,23 +37,24 @@ class ViewLogsActivity : Activity() {
         val index2 = cursor.getColumnIndex(Constants.LOCATION)
         val index3 = cursor.getColumnIndex(Constants.STEPS_AMOUNT)
 
-        val list = ArrayList<String>()
+        val list = ArrayList<LogEntry>()
         cursor.moveToFirst()
         while (!cursor.isAfterLast) {
             val logTitle = cursor.getString(index1)
             val logLocation = cursor.getString(index2)
             val logSteps = cursor.getString(index3)
-            list.add("$logTitle,$logLocation,$logSteps")
+            list.add(
+                LogEntry(
+                    sessionTitle = logTitle,
+                    location = logLocation,
+                    steps = logSteps
+                )
+            )
             cursor.moveToNext()
         }
         cursor.close()
 
-        val queryResults = intent.getStringArrayListExtra("queryResults")
-        customAdapter = if (queryResults != null) {
-            CustomAdapter(queryResults, db)
-        } else {
-            CustomAdapter(list, db)
-        }
+        customAdapter = CustomAdapter(list, db)
 
         myRecycler.adapter = customAdapter
         layoutManager = LinearLayoutManager(this)
@@ -81,7 +82,7 @@ class ViewLogsActivity : Activity() {
         Toast.makeText(this, "All logs deleted", Toast.LENGTH_SHORT).show()
     }
 
-    private fun updateRecyclerView(newList: ArrayList<String>) {
+    private fun updateRecyclerView(newList: List<LogEntry>) {
         if (newList.isEmpty()) {
             Toast.makeText(this, "No logs found for this location", Toast.LENGTH_SHORT).show()
         } else {

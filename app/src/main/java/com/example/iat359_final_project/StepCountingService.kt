@@ -11,7 +11,6 @@ import android.os.IBinder
 class StepCountingService : Service(), SensorEventListener {
     private var sensorManager: SensorManager? = null
     private var stepCounter: Sensor? = null
-    private var stepCount = 0
 
     override fun onCreate() {
         super.onCreate()
@@ -29,7 +28,7 @@ class StepCountingService : Service(), SensorEventListener {
 
     override fun onSensorChanged(event: SensorEvent) {
         if (event.sensor.type == Sensor.TYPE_STEP_COUNTER) {
-            stepCount = event.values[0].toInt()
+            // Keep listener active; no state is consumed yet.
         }
     }
 
